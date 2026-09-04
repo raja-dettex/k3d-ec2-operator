@@ -257,3 +257,21 @@ endef
 define gomodver
 $(shell go list -m -f '{{if .Replace}}{{.Replace.Version}}{{else}}{{.Version}}{{end}}' $(1) 2>/dev/null)
 endef
+
+
+##3. Tools Locations
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+HELMIFY ?= $(LOCALBIN)/helmify
+HELMIFY_VERSION ?= v0.4.15
+
+.PHONY: helmify
+helmify: $(HELMIFY) ## Download helmify locally if necessary.
+$(HELMIFY): $(LOCALBIN)
+	test -s $(HELMIFY) || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@$(HELMIFY_VERSION)
+
+.PHONY: helm-generate
+helm-generate: manifests kustomize helmify ## Generate Helm chart from Kustomize manifests.
+	$(KUSTOMIZE) build config/default | $(HELMIFY) charts/k3d-ec2-operator

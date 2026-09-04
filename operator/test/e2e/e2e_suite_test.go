@@ -28,7 +28,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"domain.com/cloud_resources/test/utils"
+	"github.com/raja-dettex/k3d-ec2-operator/operator/test/utils"
 )
 
 var (

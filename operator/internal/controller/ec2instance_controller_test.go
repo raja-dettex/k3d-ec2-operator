@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	computev1 "domain.com/cloud_resources/api/v1"
+	computev1 "github.com/raja-dettex/k3d-ec2-operator/operator/api/v1"
 )
 
 var _ = Describe("EC2Instance Controller", func() {

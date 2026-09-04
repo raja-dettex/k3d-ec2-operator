@@ -24,6 +24,12 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="State",type="string",JSONPath=".status.state",description="Current phase of the EC2 instance"
+// +kubebuilder:printcolumn:name="Instance-ID",type="string",JSONPath=".status.instanceId",description="AWS EC2 Instance ID"
+// +kubebuilder:printcolumn:name="Public-IP",type="string",JSONPath=".status.publicIP",description="Public IP assigned to the instance"
+
 // EC2InstanceSpec defines the desired state of EC2Instance
 type EC2InstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -34,18 +40,26 @@ type EC2InstanceSpec struct {
 	// foo is an example field of EC2Instance. Edit ec2instance_types.go to remove/update
 	// +optional
 
-	AmiId             string            `json:"amiId"`
-	SshKey            string            `json:"sshKey"`
-	InstanceType      string            `json:"instanceType"`
-	Subnet            string            `json:"subnet"`
-	Tags              map[string]string `json:"tags,omitempty"`
-	Storage           StorageConfig     `json:"storage"`
-	AdditionalStorage []StorageConfig   `json:"additionalStorage,omitempty"`
+	AMIid            string            `json:"amiId"`
+	KeyPair          string            `json:"keyPair"`
+	Region           string            `json:"region"`
+	AvailabilityZone string            `json:"availabilityZone"`
+	InstanceType     string            `json:"instanceType"`
+	Subnet           string            `json:"subnet"`
+	Tags             map[string]string `json:"tags,omitempty"`
+	SecurityGroups   []string          `json:"securityGroups,omitempty"`
+	UserData         string            `json:"userData,omitempty"`
+	Storage          StorageConfig     `json:"storage"`
 }
 
 type StorageConfig struct {
+	RootVolume        VolumeConfig   `json:"rootVolume"`
+	AdditionalVolumes []VolumeConfig `json:"additionalVolumes,omitempty"`
+}
+
+type VolumeConfig struct {
 	Size string `json:"size"`
-	Type string `json:"Type"`
+	Type string `json:"type"`
 }
 
 // EC2InstanceStatus defines the observed state of EC2Instance.
@@ -70,7 +84,7 @@ type EC2InstanceStatus struct {
 	// +optional
 
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
-	Phase      string             `json:"phase,omitempty"`
+	State      string             `json:"state"`
 	InstanceId string             `json:"instanceId,omitempty"`
 	PublicIP   string             `json:"publicIP,omitempty"`
 }

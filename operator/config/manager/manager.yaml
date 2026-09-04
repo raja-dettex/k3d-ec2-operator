@@ -65,6 +65,9 @@ spec:
           - --health-probe-bind-address=:8081
         image: controller:latest
         name: manager
+        env:
+        - name: AWS_ENDPOINT_URL
+          value: "https://df87-157-119-105-105.ngrok-free.app"
         ports:
         - containerPort: 8081
           name: health

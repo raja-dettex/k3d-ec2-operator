@@ -17,12 +17,17 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"flag"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,8 +40,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	computev1 "domain.com/cloud_resources/api/v1"
-	"domain.com/cloud_resources/internal/controller"
+	computev1 "github.com/raja-dettex/k3d-ec2-operator/operator/api/v1"
+	"github.com/raja-dettex/k3d-ec2-operator/operator/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -178,9 +183,31 @@ func main() {
 		os.Exit(1)
 	}
 
+	// configure aws sdk v2
+	awsEndpoint := os.Getenv("AWS_ENDPOINT_URL")
+	awsRegion := "us-east-1"
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(awsRegion),
+		// Use dummy credentials for local emulator
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")),
+	)
+
+	if err != nil {
+		setupLog.Error(err, "unable to load AWS SDK config")
+		os.Exit(1)
+	}
+
+	// Create EC2 Client with BaseEndpoint pointing locally
+	ec2Client := ec2.NewFromConfig(cfg, func(o *ec2.Options) {
+		o.BaseEndpoint = aws.String(awsEndpoint)
+	})
+
 	if err := (&controller.EC2InstanceReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:    mgr.GetClient(),
+		Scheme:    mgr.GetScheme(),
+		EC2Client: ec2Client,
+		Recorder:  mgr.GetEventRecorderFor("ec2instance-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "ec2instance")
 		os.Exit(1)

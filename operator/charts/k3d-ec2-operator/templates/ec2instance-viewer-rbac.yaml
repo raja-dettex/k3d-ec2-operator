@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k3d-ec2-operator.fullname" . }}-ec2instance-viewer-role
+  labels:
+  {{- include "k3d-ec2-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - compute.domain.com
+  resources:
+  - ec2instances
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - compute.domain.com
+  resources:
+  - ec2instances/status
+  verbs:
+  - get

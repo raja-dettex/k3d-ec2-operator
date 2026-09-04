@@ -1,21 +1,20 @@
 apiVersion: compute.domain.com/v1
 kind: EC2Instance
 metadata:
-  name: ec2instance-sample
+  name: ec2instance-sample-v2
+  namespace: default
 spec:
   amiId: ami-0123456789abcdef0
-  sshKey: my-ssh-key
+  keyPair: my-ssh-key
+  region: us-east-1
+  availabilityZone: us-east-1a
   instanceType: t3.medium
-  subnet: subnet-0123456789abcdef0
+  subnet: subnet-default-us-east-1-a
   tags:
     Name: ec2instance-sample
     Environment: dev
     ManagedBy: k3d-ec2-operator
   storage:
-    size: "20Gi"
-    Type: gp3
-  additionalStorage:
-    - size: "100Gi"
-      Type: gp3
-    - size: "500Gi"
-      Type: io1
+    rootVolume:
+      size: "1Gi"
+      type: "gp3"
